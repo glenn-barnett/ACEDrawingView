@@ -281,6 +281,10 @@
     self.currentTool.lineColor = self.lineColor;
     self.currentTool.lineAlpha = self.lineAlpha;
     
+    if (self.edgeSnapThreshold > 0 && [self.currentTool isKindOfClass:[ACEDrawingRectangleTool class]]) {
+        [self snapCurrentPointToEdges];
+    }
+
     if ([self.currentTool class] == [ACEDrawingTextTool class]) {
         [self initializeTextBox:currentPoint WithMultiline:NO];
     } else if([self.currentTool class] == [ACEDrawingMultilineTextTool class]) {
@@ -306,6 +310,10 @@
     previousPoint1 = [touch previousLocationInView:self];
     currentPoint = [touch locationInView:self];
     
+    if (self.edgeSnapThreshold > 0 && [self.currentTool isKindOfClass:[ACEDrawingRectangleTool class]]) {
+        [self snapCurrentPointToEdges];
+    }
+
     if ([self.currentTool isKindOfClass:[ACEDrawingPenTool class]]) {
         CGRect bounds = [(ACEDrawingPenTool*)self.currentTool addPathPreviousPreviousPoint:previousPoint2 withPreviousPoint:previousPoint1 withCurrentPoint:currentPoint];
         
@@ -346,6 +354,17 @@
     [self touchesEnded:touches withEvent:event];
 }
 
+- (void) snapCurrentPointToEdges
+{
+    int xMax = self.frame.size.width;
+    int yMax = self.frame.size.height;
+    
+    if(currentPoint.x < self.edgeSnapThreshold) currentPoint.x = 0;
+    else if(currentPoint.x > xMax - self.edgeSnapThreshold) currentPoint.x = xMax;
+    if(currentPoint.y < self.edgeSnapThreshold) currentPoint.y = 0;
+    else if(currentPoint.y > yMax - self.edgeSnapThreshold) currentPoint.y = yMax;
+}
+
 #pragma mark - Text Entry
 
 - (void)initializeTextBox:(CGPoint)startingPoint WithMultiline:(BOOL)multiline {
@@ -373,6 +392,7 @@
     } else {
         [self.textView setFont:[UIFont systemFontOfSize:calculatedFontSize]];
     }
+
     self.textView.textColor = self.lineColor;
     self.textView.alpha = self.lineAlpha;
     
